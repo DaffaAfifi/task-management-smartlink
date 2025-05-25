@@ -20,6 +20,7 @@ use Filament\Tables;
 use Filament\Tables\Actions\ExportAction;
 use Filament\Tables\Actions\ExportBulkAction;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
@@ -77,12 +78,17 @@ class UserResource extends Resource
                     ->maxLength(255),
                 TextInput::make('password')
                     ->password()
-                    ->required()
+                    ->required(fn($context) => $context === 'create')
+                    ->dehydrated(fn($state) => filled($state))
                     ->maxLength(255),
+                Select::make('division_id')
+                    ->relationship('division', 'name')
+                    ->preload()
+                    ->searchable(),
                 Select::make('roles')
                     ->visible(fn() => !Auth::user()->hasRole('admin'))
+                    ->required()
                     ->relationship('roles', 'name')
-                    ->multiple()
                     ->preload()
                     ->searchable(),
             ]);
@@ -97,6 +103,8 @@ class UserResource extends Resource
                     ->searchable(),
                 TextColumn::make('email')
                     ->searchable(),
+                TextColumn::make('division.name')
+                    ->searchable(),
                 TextColumn::make('roles')
                     ->getStateUsing(fn(User $record): string => $record->roles->pluck('name')->implode(', ')),
                 TextColumn::make('created_at')
@@ -109,7 +117,12 @@ class UserResource extends Resource
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
-                //
+                SelectFilter::make('division_id')
+                    ->label('Division')
+                    ->relationship(name: 'division', titleAttribute: 'name')
+                    ->searchable()
+                    ->preload()
+                    ->native(false),
             ])
             ->actions([
                 Tables\Actions\ViewAction::make(),
@@ -134,6 +147,7 @@ class UserResource extends Resource
                     ->schema([
                         TextEntry::make('name'),
                         TextEntry::make('email'),
+                        TextEntry::make('division.name'),
                         TextEntry::make('roles')
                             ->formatStateUsing(function ($state, $record) {
                                 return $record->roles->pluck('name')->implode(', ');

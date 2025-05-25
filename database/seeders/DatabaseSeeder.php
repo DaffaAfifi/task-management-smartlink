@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Models\Division;
 use App\Models\User;
 // use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
@@ -20,6 +21,10 @@ class DatabaseSeeder extends Seeder
 
         $this->call(RolePermissionSeeder::class);
 
+        Division::create(['name' => 'IT']);
+        Division::create(['name' => 'HR']);
+        Division::create(['name' => 'Operasional']);
+
         User::factory()->create([
             'name' => 'Super Admin',
             'email' => 'superadmin@example.com',
@@ -36,18 +41,21 @@ class DatabaseSeeder extends Seeder
             'name' => 'Rob Stark',
             'email' => 'user1@example.com',
             'password' => bcrypt('123456'),
+            'division_id' => 1
         ])->assignRole($user);
 
         User::factory()->create([
             'name' => 'Sansa Stark',
             'email' => 'user2@example.com',
             'password' => bcrypt('123456'),
+            'division_id' => 1
         ])->assignRole($user);
 
         User::factory()->create([
             'name' => 'Arya Stark',
             'email' => 'user3@example.com',
             'password' => bcrypt('123456'),
+            'division_id' => 2
         ])->assignRole($user);
 
         $this->call(ProjectSeeder::class);
