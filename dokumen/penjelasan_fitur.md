@@ -87,6 +87,6 @@ Sistem ini memiliki 3 role utama:
 
 Untuk petunjuk penggunaan lebih lanjut, silakan tonton video demo berikut:
 
-[Tonton di YouTube](https://www.youtube.com/watch?v=CONTOH-ID-VIDEO)
+[Tonton di YouTube](https://youtu.be/bRxYH5KsIQo)
 
 ---

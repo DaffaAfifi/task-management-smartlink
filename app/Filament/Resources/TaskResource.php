@@ -4,12 +4,8 @@ namespace App\Filament\Resources;
 
 use App\Filament\Exports\TaskExporter;
 use App\Filament\Resources\TaskResource\Pages;
-use App\Filament\Resources\TaskResource\RelationManagers;
 use App\Models\Task;
 use Carbon\Carbon;
-use Dom\Text;
-use Filament\Actions\Exports\Models\Export;
-use Filament\Forms;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\Select;
@@ -19,7 +15,6 @@ use Filament\Forms\Form;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Infolists\Infolist;
 use Filament\Resources\Resource;
-use Filament\Tables;
 use Filament\Tables\Actions\Action;
 use Filament\Tables\Actions\BulkActionGroup;
 use Filament\Tables\Actions\DeleteBulkAction;
@@ -33,7 +28,6 @@ use Filament\Tables\Filters\Indicator;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Illuminate\Support\Facades\Auth;
 
 class TaskResource extends Resource
@@ -232,7 +226,6 @@ class TaskResource extends Resource
                     ->color('primary')
                     ->icon('heroicon-m-play')
                     ->requiresConfirmation()
-                    // ->action(fn($record) => $record->update(['status' => 'In Progress']))
                     ->action(fn($record) => $record->startSession())
                     ->visible(
                         fn($record) =>
@@ -245,7 +238,6 @@ class TaskResource extends Resource
                     ->icon('heroicon-m-pause')
                     ->requiresConfirmation()
                     ->action(fn($record) => $record->pauseSession())
-                    // ->action(fn($record) => $record->update(['status' => 'Done']))
                     ->visible(
                         fn($record) =>
                         Auth::user()?->hasRole('user') && $record->status === 'In Progress' && $record->isSessionRunningForCurrentUser()
@@ -257,7 +249,6 @@ class TaskResource extends Resource
                     ->icon('heroicon-m-play')
                     ->requiresConfirmation()
                     ->action(fn($record) => $record->resumeSession())
-                    // ->action(fn($record) => $record->update(['status' => 'Done']))
                     ->visible(
                         fn($record) =>
                         Auth::user()?->hasRole('user') && $record->status === 'In Progress'  && !$record->isSessionRunningForCurrentUser()
@@ -269,7 +260,6 @@ class TaskResource extends Resource
                     ->icon('heroicon-m-check-circle')
                     ->requiresConfirmation()
                     ->action(fn($record) => $record->finishTask())
-                    // ->action(fn($record) => $record->update(['status' => 'Done']))
                     ->visible(
                         fn($record) =>
                         Auth::user()?->hasRole('user') && $record->status === 'In Progress'
