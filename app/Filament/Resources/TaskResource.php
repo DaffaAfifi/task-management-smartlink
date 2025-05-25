@@ -120,7 +120,29 @@ class TaskResource extends Resource
                     ->sortable(),
                 TextColumn::make('deadline')
                     ->dateTime()
-                    ->sortable(),
+                    ->sortable()
+                    ->color(function ($record) {
+                        if ($record->status === 'Done' && now()->lessThanOrEqualTo($record->deadline)) {
+                            return 'success';
+                        }
+
+                        if (now()->greaterThan($record->deadline) && $record->status !== 'Done') {
+                            return 'danger';
+                        }
+
+                        return null;
+                    })
+                    ->icon(function ($record) {
+                        if ($record->status === 'Done' && now()->lessThanOrEqualTo($record->deadline)) {
+                            return 'heroicon-m-check-circle';
+                        }
+
+                        if (now()->greaterThan($record->deadline) && $record->status !== 'Done') {
+                            return 'heroicon-m-exclamation-triangle';
+                        }
+
+                        return null;
+                    }),
                 TextColumn::make('user.name')
                     ->visible(fn() => !Auth::user()?->hasRole('user'))
                     ->label('Assigned To')
@@ -131,9 +153,14 @@ class TaskResource extends Resource
                     ->sortable()
                     ->searchable(),
                 TextColumn::make('total_duration')
-                    ->label('Total Duration')
+                    ->label('Duration of Work')
                     ->state(fn($record) => $record->taskSessions->sum('duration_seconds'))
-                    ->formatStateUsing(fn($state) => gmdate('H:i:s', $state)),
+                    ->formatStateUsing(fn($state) => gmdate('H:i:s', $state))
+                    ->icon(
+                        fn($record) => $record->status == 'In Progress'
+                            ? 'heroicon-m-clock'
+                            : null
+                    ),
                 TextColumn::make('created_at')
                     ->dateTime()
                     ->sortable()
@@ -263,9 +290,47 @@ class TaskResource extends Resource
         return $infolist
             ->schema([
                 TextEntry::make('title'),
+                TextEntry::make('user.name')
+                    ->label('Assigned To'),
+                TextEntry::make('project.name')
+                    ->label('In Project'),
                 TextEntry::make('deadline')
-                    ->label('Deadline')
-                    ->dateTime(),
+                    ->dateTime()
+                    ->color(function ($record) {
+                        if ($record->status === 'Done' && now()->lessThanOrEqualTo($record->deadline)) {
+                            return 'success';
+                        }
+
+                        if (now()->greaterThan($record->deadline) && $record->status !== 'Done') {
+                            return 'danger';
+                        }
+
+                        return null;
+                    })
+                    ->icon(function ($record) {
+                        if ($record->status === 'Done' && now()->lessThanOrEqualTo($record->deadline)) {
+                            return 'heroicon-m-check-circle';
+                        }
+
+                        if (now()->greaterThan($record->deadline) && $record->status !== 'Done') {
+                            return 'heroicon-m-exclamation-triangle';
+                        }
+
+                        return null;
+                    }),
+                TextEntry::make('finished_at')
+                    ->label('Finished At')
+                    ->dateTime()
+                    ->visible(fn($record) => $record->status === 'Done')
+                    ->state(fn($record) => $record->taskSessions->sortByDesc('ended_at')->first()?->ended_at),
+                TextEntry::make('total_duration')
+                    ->label('Duration of Work')
+                    ->state(fn($record) => $record->taskSessions->sum('duration_seconds'))
+                    ->formatStateUsing(fn($state) => gmdate('H:i:s', $state))->icon(
+                        fn($record) => $record->status == 'In Progress'
+                            ? 'heroicon-m-clock'
+                            : null
+                    ),
                 TextEntry::make('status')
                     ->label('Status')
                     ->badge()
@@ -274,14 +339,6 @@ class TaskResource extends Resource
                         'In Progress' => 'warning',
                         'Done' => 'success',
                     }),
-                TextEntry::make('user.name')
-                    ->label('Assigned To'),
-                TextEntry::make('project.name')
-                    ->label('In Project'),
-                TextEntry::make('total_duration')
-                    ->label('Total Duration')
-                    ->state(fn($record) => $record->taskSessions->sum('duration_seconds'))
-                    ->formatStateUsing(fn($state) => gmdate('H:i:s', $state)),
                 TextEntry::make('description')
                     ->columnSpanFull(),
             ])->columns(3);

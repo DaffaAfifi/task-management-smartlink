@@ -74,14 +74,41 @@ class TasksRelationManager extends RelationManager
                     ->sortable(),
                 TextColumn::make('deadline')
                     ->dateTime()
-                    ->sortable(),
+                    ->sortable()
+                    ->color(function ($record) {
+                        if ($record->status === 'Done' && now()->lessThanOrEqualTo($record->deadline)) {
+                            return 'success';
+                        }
+
+                        if (now()->greaterThan($record->deadline) && $record->status !== 'Done') {
+                            return 'danger';
+                        }
+
+                        return null;
+                    })
+                    ->icon(function ($record) {
+                        if ($record->status === 'Done' && now()->lessThanOrEqualTo($record->deadline)) {
+                            return 'heroicon-m-check-circle';
+                        }
+
+                        if (now()->greaterThan($record->deadline) && $record->status !== 'Done') {
+                            return 'heroicon-m-exclamation-triangle';
+                        }
+
+                        return null;
+                    }),
                 TextColumn::make('user.name')
                     ->label('Assigned To')
                     ->searchable(),
                 TextColumn::make('total_duration')
-                    ->label('Total Duration')
+                    ->label('Duration of Work')
                     ->state(fn($record) => $record->taskSessions->sum('duration_seconds'))
-                    ->formatStateUsing(fn($state) => gmdate('H:i:s', $state)),
+                    ->formatStateUsing(fn($state) => gmdate('H:i:s', $state))
+                    ->icon(
+                        fn($record) => $record->status == 'In Progress'
+                            ? 'heroicon-m-clock'
+                            : null
+                    ),
             ])
             ->filters([
                 //

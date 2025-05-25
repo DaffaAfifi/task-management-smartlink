@@ -24,7 +24,7 @@ class TaskExporter extends Exporter
             ExportColumn::make('project.name')
                 ->label('In Project'),
             ExportColumn::make('total_duration')
-                ->label('Total Duration')
+                ->label('Duration of Work')
                 ->state(fn($record) => $record->taskSessions->sum('duration_seconds'))
                 ->formatStateUsing(fn($state) => gmdate('H:i:s', $state)),
         ];
