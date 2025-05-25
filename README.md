@@ -6,15 +6,6 @@ Cara instalasi & menjalankan system secara lokal.
 
 ### Initial Setup
 
--   Install Dependencies & Generate App Key
-
-    ```bash
-    composer install && php artisan key:generate
-    ```
-
-    -   composer install
-    -   php artisan key:generate
-
 -   Copy & Edit .env File
 
     ```bash
@@ -35,6 +26,15 @@ Cara instalasi & menjalankan system secara lokal.
     ```
 
     -   QUEUE_CONNECTION=sync digunakan agar proses seperti export jalan tanpa konfigurasi queue driver tambahan.
+
+-   Install Dependencies & Generate App Key
+
+    ```bash
+    composer install && php artisan key:generate
+    ```
+
+    -   composer install
+    -   php artisan key:generate
 
 -   Jalankan Migrasi Database
 
