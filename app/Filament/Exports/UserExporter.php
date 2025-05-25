@@ -17,6 +17,7 @@ class UserExporter extends Exporter
             ExportColumn::make('id'),
             ExportColumn::make('name'),
             ExportColumn::make('email'),
+            ExportColumn::make('division.name'),
             ExportColumn::make('roles')
                 ->getStateUsing(fn(User $record): string => $record->roles->pluck('name')->implode(', ')),
             ExportColumn::make('todo_tasks')
