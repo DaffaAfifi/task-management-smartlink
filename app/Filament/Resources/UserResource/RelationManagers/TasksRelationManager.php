@@ -76,6 +76,10 @@ class TasksRelationManager extends RelationManager
                 TextColumn::make('project.name')
                     ->label('In Project')
                     ->searchable(),
+                TextColumn::make('total_duration')
+                    ->label('Total Duration')
+                    ->state(fn($record) => $record->taskSessions->sum('duration_seconds'))
+                    ->formatStateUsing(fn($state) => gmdate('H:i:s', $state)),
             ])
             ->filters([
                 //

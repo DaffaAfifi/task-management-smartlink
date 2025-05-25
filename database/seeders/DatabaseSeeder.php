@@ -49,5 +49,9 @@ class DatabaseSeeder extends Seeder
             'email' => 'user3@example.com',
             'password' => bcrypt('123456'),
         ])->assignRole($user);
+
+        $this->call(ProjectSeeder::class);
+
+        $this->call(TaskSeeder::class);
     }
 }

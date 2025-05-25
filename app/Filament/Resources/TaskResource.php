@@ -7,6 +7,7 @@ use App\Filament\Resources\TaskResource\Pages;
 use App\Filament\Resources\TaskResource\RelationManagers;
 use App\Models\Task;
 use Carbon\Carbon;
+use Dom\Text;
 use Filament\Actions\Exports\Models\Export;
 use Filament\Forms;
 use Filament\Forms\Components\DatePicker;
@@ -129,6 +130,10 @@ class TaskResource extends Resource
                     ->label('In Project')
                     ->sortable()
                     ->searchable(),
+                TextColumn::make('total_duration')
+                    ->label('Total Duration')
+                    ->state(fn($record) => $record->taskSessions->sum('duration_seconds'))
+                    ->formatStateUsing(fn($state) => gmdate('H:i:s', $state)),
                 TextColumn::make('created_at')
                     ->dateTime()
                     ->sortable()
@@ -169,7 +174,12 @@ class TaskResource extends Resource
                     }),
                 SelectFilter::make('user_id')
                     ->label('Assigned To')
-                    ->relationship(name: 'user', titleAttribute: 'name')
+                    ->relationship(
+                        name: 'user',
+                        titleAttribute: 'name',
+                        modifyQueryUsing: fn(Builder $query) =>
+                        $query->whereHas('roles', fn($q) => $q->where('name', 'user'))
+                    )
                     ->searchable(['name', 'email'])
                     ->preload()
                     ->native(false),
@@ -195,10 +205,35 @@ class TaskResource extends Resource
                     ->color('primary')
                     ->icon('heroicon-m-play')
                     ->requiresConfirmation()
-                    ->action(fn($record) => $record->update(['status' => 'In Progress']))
+                    // ->action(fn($record) => $record->update(['status' => 'In Progress']))
+                    ->action(fn($record) => $record->startSession())
                     ->visible(
                         fn($record) =>
                         Auth::user()?->hasRole('user') && $record->status === 'To Do'
+                    ),
+
+                Action::make('pause_task')
+                    ->label('Pause')
+                    ->color('warning')
+                    ->icon('heroicon-m-pause')
+                    ->requiresConfirmation()
+                    ->action(fn($record) => $record->pauseSession())
+                    // ->action(fn($record) => $record->update(['status' => 'Done']))
+                    ->visible(
+                        fn($record) =>
+                        Auth::user()?->hasRole('user') && $record->status === 'In Progress' && $record->isSessionRunningForCurrentUser()
+                    ),
+
+                Action::make('resume_task')
+                    ->label('Resume')
+                    ->color('warning')
+                    ->icon('heroicon-m-play')
+                    ->requiresConfirmation()
+                    ->action(fn($record) => $record->resumeSession())
+                    // ->action(fn($record) => $record->update(['status' => 'Done']))
+                    ->visible(
+                        fn($record) =>
+                        Auth::user()?->hasRole('user') && $record->status === 'In Progress'  && !$record->isSessionRunningForCurrentUser()
                     ),
 
                 Action::make('finish')
@@ -206,7 +241,8 @@ class TaskResource extends Resource
                     ->color('success')
                     ->icon('heroicon-m-check-circle')
                     ->requiresConfirmation()
-                    ->action(fn($record) => $record->update(['status' => 'Done']))
+                    ->action(fn($record) => $record->finishTask())
+                    // ->action(fn($record) => $record->update(['status' => 'Done']))
                     ->visible(
                         fn($record) =>
                         Auth::user()?->hasRole('user') && $record->status === 'In Progress'
@@ -242,6 +278,10 @@ class TaskResource extends Resource
                     ->label('Assigned To'),
                 TextEntry::make('project.name')
                     ->label('In Project'),
+                TextEntry::make('total_duration')
+                    ->label('Total Duration')
+                    ->state(fn($record) => $record->taskSessions->sum('duration_seconds'))
+                    ->formatStateUsing(fn($state) => gmdate('H:i:s', $state)),
                 TextEntry::make('description')
                     ->columnSpanFull(),
             ])->columns(3);
