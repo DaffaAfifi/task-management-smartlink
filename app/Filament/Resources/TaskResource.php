@@ -116,11 +116,11 @@ class TaskResource extends Resource
                     ->dateTime()
                     ->sortable()
                     ->color(function ($record) {
-                        if ($record->isFinishedOnTime()) {
+                        if ($record->isFinished('on_time')) {
                             return 'success';
                         }
 
-                        if ($record->isFinishedLate()) {
+                        if ($record->isFinished('late')) {
                             return 'warning';
                         }
 
@@ -131,11 +131,11 @@ class TaskResource extends Resource
                         return null;
                     })
                     ->icon(function ($record) {
-                        if ($record->isFinishedOnTime()) {
+                        if ($record->isFinished('on_time')) {
                             return 'heroicon-m-check-circle';
                         }
 
-                        if ($record->isFinishedLate()) {
+                        if ($record->isFinished('late')) {
                             return 'heroicon-m-exclamation-circle';
                         }
 
@@ -237,7 +237,7 @@ class TaskResource extends Resource
                     ->color('primary')
                     ->icon('heroicon-m-play')
                     ->requiresConfirmation()
-                    ->action(fn($record) => $record->startSession())
+                    ->action(fn($record) => $record->beginSession())
                     ->visible(
                         fn($record) =>
                         Auth::user()?->hasRole('user') && $record->status === 'To Do'
@@ -259,7 +259,7 @@ class TaskResource extends Resource
                     ->color('warning')
                     ->icon('heroicon-m-play')
                     ->requiresConfirmation()
-                    ->action(fn($record) => $record->resumeSession())
+                    ->action(fn($record) => $record->beginSession())
                     ->visible(
                         fn($record) =>
                         Auth::user()?->hasRole('user') && $record->status === 'In Progress'  && !$record->isSessionRunningForCurrentUser()
@@ -298,11 +298,11 @@ class TaskResource extends Resource
                 TextEntry::make('deadline')
                     ->dateTime()
                     ->color(function ($record) {
-                        if ($record->isFinishedOnTime()) {
+                        if ($record->isFinished('on_time')) {
                             return 'success';
                         }
 
-                        if ($record->isFinishedLate()) {
+                        if ($record->isFinished('late')) {
                             return 'warning';
                         }
 
@@ -313,11 +313,11 @@ class TaskResource extends Resource
                         return null;
                     })
                     ->icon(function ($record) {
-                        if ($record->isFinishedOnTime()) {
+                        if ($record->isFinished('on_time')) {
                             return 'heroicon-m-check-circle';
                         }
 
-                        if ($record->isFinishedLate()) {
+                        if ($record->isFinished('late')) {
                             return 'heroicon-m-exclamation-circle';
                         }
 

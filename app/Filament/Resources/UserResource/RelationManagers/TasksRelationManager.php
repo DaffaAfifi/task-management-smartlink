@@ -71,11 +71,11 @@ class TasksRelationManager extends RelationManager
                     ->dateTime()
                     ->sortable()
                     ->color(function ($record) {
-                        if ($record->isFinishedOnTime()) {
+                        if ($record->isFinished('on_time')) {
                             return 'success';
                         }
 
-                        if ($record->isFinishedLate()) {
+                        if ($record->isFinished('late')) {
                             return 'warning';
                         }
 
@@ -86,11 +86,11 @@ class TasksRelationManager extends RelationManager
                         return null;
                     })
                     ->icon(function ($record) {
-                        if ($record->isFinishedOnTime()) {
+                        if ($record->isFinished('on_time')) {
                             return 'heroicon-m-check-circle';
                         }
 
-                        if ($record->isFinishedLate()) {
+                        if ($record->isFinished('late')) {
                             return 'heroicon-m-exclamation-circle';
                         }
 

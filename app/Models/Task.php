@@ -5,7 +5,9 @@ namespace App\Models;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 
 class Task extends Model
 {
@@ -23,8 +25,7 @@ class Task extends Model
         'ended_at' => 'datetime',
     ];
 
-
-    public function isFinishedOnTime(): bool
+    public function isFinished(string $type = 'on_time'): bool
     {
         if ($this->status !== 'Done') {
             return false;
@@ -35,29 +36,23 @@ class Task extends Model
             ->latest('ended_at')
             ->value('ended_at');
 
-        return $lastEndedAt && $lastEndedAt <= $this->deadline;
-    }
-
-    public function isFinishedLate(): bool
-    {
-        if ($this->status !== 'Done') {
+        if (!$lastEndedAt) {
             return false;
         }
 
-        $lastEndedAt = $this->taskSessions()
-            ->whereNotNull('ended_at')
-            ->latest('ended_at')
-            ->value('ended_at');
-
-        return $lastEndedAt && $lastEndedAt > $this->deadline;
+        return match ($type) {
+            'on_time' => $lastEndedAt <= $this->deadline,
+            'late'    => $lastEndedAt > $this->deadline,
+            default   => false,
+        };
     }
 
     public function isOverdue(): bool
     {
-        return $this->status !== 'Done' && now()->greaterThan($this->deadline);
+        return $this->status !== 'Done' && now()->greaterThanOrEqualTo($this->deadline);
     }
 
-    public function startSession(): void
+    public function beginSession(): void
     {
         $this->update(['status' => 'In Progress']);
 
@@ -82,16 +77,6 @@ class Task extends Model
         $last->update([
             'ended_at' => now(),
             'duration_seconds' => Carbon::parse($last->started_at)->diffInSeconds(now()),
-        ]);
-    }
-
-    public function resumeSession(): void
-    {
-        $this->update(['status' => 'In Progress']);
-
-        $this->taskSessions()->create([
-            'user_id' => Auth::user()->id,
-            'started_at' => now(),
         ]);
     }
 
@@ -120,7 +105,7 @@ class Task extends Model
         return $this->belongsTo(Project::class);
     }
 
-    public function taskSessions()
+    public function taskSessions(): HasMany
     {
         return $this->hasMany(TaskSession::class);
     }
