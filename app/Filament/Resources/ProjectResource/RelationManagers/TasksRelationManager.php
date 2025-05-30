@@ -74,22 +74,30 @@ class TasksRelationManager extends RelationManager
                     ->dateTime()
                     ->sortable()
                     ->color(function ($record) {
-                        if ($record->status === 'Done' && now()->lessThanOrEqualTo($record->deadline)) {
+                        if ($record->isFinishedOnTime()) {
                             return 'success';
                         }
 
-                        if (now()->greaterThan($record->deadline) && $record->status !== 'Done') {
+                        if ($record->isFinishedLate()) {
+                            return 'warning';
+                        }
+
+                        if ($record->isOverdue()) {
                             return 'danger';
                         }
 
                         return null;
                     })
                     ->icon(function ($record) {
-                        if ($record->status === 'Done' && now()->lessThanOrEqualTo($record->deadline)) {
+                        if ($record->isFinishedOnTime()) {
                             return 'heroicon-m-check-circle';
                         }
 
-                        if (now()->greaterThan($record->deadline) && $record->status !== 'Done') {
+                        if ($record->isFinishedLate()) {
+                            return 'heroicon-m-exclamation-circle';
+                        }
+
+                        if ($record->isOverdue()) {
                             return 'heroicon-m-exclamation-triangle';
                         }
 
@@ -102,11 +110,14 @@ class TasksRelationManager extends RelationManager
                     ->label('Duration of Work')
                     ->state(fn($record) => $record->taskSessions->sum('duration_seconds'))
                     ->formatStateUsing(fn($state) => gmdate('H:i:s', $state))
-                    ->icon(
-                        fn($record) => $record->status == 'In Progress'
-                            ? 'heroicon-m-clock'
-                            : null
-                    ),
+                    ->color(function ($record) {
+                        return match ($record->status) {
+                            'To Do' => 'gray',
+                            'In Progress' => 'warning',
+                            'Done' => 'success',
+                            default => null
+                        };
+                    }),
             ])
             ->filters([
                 //

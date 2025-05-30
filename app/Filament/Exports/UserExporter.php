@@ -29,6 +29,10 @@ class UserExporter extends Exporter
             ExportColumn::make('done_tasks')
                 ->label('Done Tasks Count')
                 ->formatStateUsing(fn(User $record): string => $record->tasks->where('status', 'Done')->count()),
+            ExportColumn::make('total_work_this_week')
+                ->label('Week Total')
+                ->state(fn($record) => $record->totalWorkSecondsThisWeek())
+                ->formatStateUsing(fn($state) => gmdate('H:i:s', $state)),
         ];
     }
 

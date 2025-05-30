@@ -22,20 +22,14 @@ class ListTasks extends ListRecords
 
     public function getTabs(): array
     {
-        $user = Auth::user();
-
-        if ($user && $user->hasRole('user')) {
-            return [
-                'All' => Tab::make(),
-                'To Do' => Tab::make()
-                    ->query(fn(Builder $query): Builder => $query->where('status', 'To Do')),
-                'In Progress' => Tab::make()
-                    ->query(fn(Builder $query): Builder => $query->where('status', 'In Progress')),
-                'Done' => Tab::make()
-                    ->query(fn(Builder $query): Builder => $query->where('status', 'Done')),
-            ];
-        }
-
-        return [];
+        return [
+            'All' => Tab::make(),
+            'To Do' => Tab::make()
+                ->query(fn(Builder $query): Builder => $query->where('status', 'To Do')),
+            'In Progress' => Tab::make()
+                ->query(fn(Builder $query): Builder => $query->where('status', 'In Progress')),
+            'Done' => Tab::make()
+                ->query(fn(Builder $query): Builder => $query->where('status', 'Done')),
+        ];
     }
 }

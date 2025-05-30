@@ -101,7 +101,8 @@ class UserResource extends Resource
                 TextColumn::make('division.name')
                     ->searchable(),
                 TextColumn::make('roles')
-                    ->getStateUsing(fn(User $record): string => $record->roles->pluck('name')->implode(', ')),
+                    ->getStateUsing(fn(User $record): string => $record->roles->pluck('name')->implode(', '))
+                    ->visible(fn() => Auth::user()->hasRole('super_admin')),
                 TextColumn::make('created_at')
                     ->dateTime()
                     ->sortable()
@@ -147,6 +148,11 @@ class UserResource extends Resource
                             ->formatStateUsing(function ($state, $record) {
                                 return $record->roles->pluck('name')->implode(', ');
                             })
+                            ->visible(fn() => Auth::user()->hasRole('super_admin')),
+                        TextEntry::make('total_work_this_week')
+                            ->label('Week Total')
+                            ->state(fn($record) => $record->totalWorkSecondsThisWeek())
+                            ->formatStateUsing(fn($state) => gmdate('H:i:s', $state)),
                     ])
                     ->columns(2),
                 Section::make('Tasks Status Aggregate')

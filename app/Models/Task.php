@@ -23,6 +23,40 @@ class Task extends Model
         'ended_at' => 'datetime',
     ];
 
+
+    public function isFinishedOnTime(): bool
+    {
+        if ($this->status !== 'Done') {
+            return false;
+        }
+
+        $lastEndedAt = $this->taskSessions()
+            ->whereNotNull('ended_at')
+            ->latest('ended_at')
+            ->value('ended_at');
+
+        return $lastEndedAt && $lastEndedAt <= $this->deadline;
+    }
+
+    public function isFinishedLate(): bool
+    {
+        if ($this->status !== 'Done') {
+            return false;
+        }
+
+        $lastEndedAt = $this->taskSessions()
+            ->whereNotNull('ended_at')
+            ->latest('ended_at')
+            ->value('ended_at');
+
+        return $lastEndedAt && $lastEndedAt > $this->deadline;
+    }
+
+    public function isOverdue(): bool
+    {
+        return $this->status !== 'Done' && now()->greaterThan($this->deadline);
+    }
+
     public function startSession(): void
     {
         $this->update(['status' => 'In Progress']);
